@@ -1,10 +1,12 @@
+from typing import List
+import pandas as pd
 import cv2
 import matplotlib.pyplot as plt
 from pytesseract import pytesseract
 import re
 
 
-def extract_text_from_horizontal_layout():
+def extract_text_from_horizontal_layout() -> List[str]:
     # 이미지 읽기
     image = cv2.imread('./assets/sample007.jpg', cv2.IMREAD_COLOR)
 
@@ -27,10 +29,11 @@ def extract_text_from_horizontal_layout():
         ocr_result = pytesseract.image_to_string(roi, lang='eng+kor')
 
         # 결과 출력
-        filtered_rec = [x for x in ocr_result.strip().split('\n') if x]
+        filtered_rec:List[str] = [x for x in ocr_result.strip().split('\n') if x]
         if len(filtered_rec) >= 2:
             name, price = split_name_and_price(filtered_rec[0])
-            result_arr.append([filtered_rec[1], name, price])
+            date = filtered_rec[1][:filtered_rec[1].find('(')].replace(' ', '')
+            result_arr.append([date, name, price])
 
     return result_arr
     # End
@@ -64,8 +67,8 @@ def make_rectangle_layout():
     plt.show()
 
 
-def create_data_frame(receipt_ocr_result: str):
-    pass
+def create_data_frame(receipt_ocr_result_arr: List[str]):
+    return pd.DataFrame(receipt_ocr_result_arr, columns=['승인일짜', '가맹점명', '금액'])
 
 
 def split_name_and_price(name_and_price_str: str):
@@ -79,16 +82,12 @@ def split_name_and_price(name_and_price_str: str):
         return name, price
     else:
         return name_and_price_str, ''
-
-# 2. OCR의 결과 데이터가 정확하지 않습니다. 결과에 대해서 전처리하는 기능 필요
-def split_date_and_cardtype():
-    pass # 여기서부터 시작
-# 3. 삽입된 모든 이미지의 텍스트 정보를 추출합니다. -> DF 만들고 -> Excel로 만들어서 제공합니다. >> 여기까지 1차 작어
 # WILL >> front 에서 table을 통해서 제공하고 데이터가 적절한지 확인할 수 있는 화면을 만든다., 프론트추가삭제기능, 결과 다시 가져와서 엑셀로 적용 끝.
 
 
 if __name__ == "__main__":
     result_ocr_arr = extract_text_from_horizontal_layout()
-    print(result_ocr_arr)
+    df = create_data_frame(result_ocr_arr)
+    print(df)
     # extract_text_from_updated_layout()
     # make_rectangle_layout()
