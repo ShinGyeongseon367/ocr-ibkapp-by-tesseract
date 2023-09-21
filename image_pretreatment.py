@@ -4,7 +4,6 @@ from pytesseract import pytesseract
 import re
 
 
-# TODO ::: 1. 하나의 이미지의 텍스트를 추출하여 결과를 return 하는 것 까지 만듭니다.
 def extract_text_from_horizontal_layout():
     # 이미지 읽기
     image = cv2.imread('./assets/sample007.jpg', cv2.IMREAD_COLOR)
@@ -15,6 +14,7 @@ def extract_text_from_horizontal_layout():
     # 각 영역의 높이 계산
     section_height = height // 10
 
+    result_arr = []
     # 10개의 영역에 대해 사각형 그리기
     for i in range(10):
         start_y = section_height * i
@@ -28,13 +28,11 @@ def extract_text_from_horizontal_layout():
 
         # 결과 출력
         filtered_rec = [x for x in ocr_result.strip().split('\n') if x]
-        result_arr = []
         if len(filtered_rec) >= 2:
             name, price = split_name_and_price(filtered_rec[0])
-            result_arr.append(name)
-            result_arr.append(price)
-            result_arr.append(filtered_rec[1])
-        print(result_arr, len(result_arr))
+            result_arr.append([filtered_rec[1], name, price])
+
+    return result_arr
     # End
 
 
@@ -70,7 +68,6 @@ def create_data_frame(receipt_ocr_result: str):
     pass
 
 
-# TODO ::: 2. OCR의 결과 데이터가 정확하지 않습니다. 결과에 대해서 전처리하는 기능 필요
 def split_name_and_price(name_and_price_str: str):
     # xx,xxx 원 혹은 x,xxx 원 혹은 xxx 원 패턴을 찾습니다.
     match = re.search(r'(\d{1,3},?\d{1,3})', name_and_price_str)
@@ -82,11 +79,16 @@ def split_name_and_price(name_and_price_str: str):
         return name, price
     else:
         return name_and_price_str, ''
-# TODO ::: 3. 삽입된 모든 이미지의 텍스트 정보를 추출합니다. -> DF 만들고 -> Excel로 만들어서 제공합니다. >> 여기까지 1차 작어
-# TODO ::: WILL >> front 에서 table을 통해서 제공하고 데이터가 적절한지 확인할 수 있는 화면을 만든다., 프론트추가삭제기능, 결과 다시 가져와서 엑셀로 적용 끝.
+
+# 2. OCR의 결과 데이터가 정확하지 않습니다. 결과에 대해서 전처리하는 기능 필요
+def split_date_and_cardtype():
+    pass # 여기서부터 시작
+# 3. 삽입된 모든 이미지의 텍스트 정보를 추출합니다. -> DF 만들고 -> Excel로 만들어서 제공합니다. >> 여기까지 1차 작어
+# WILL >> front 에서 table을 통해서 제공하고 데이터가 적절한지 확인할 수 있는 화면을 만든다., 프론트추가삭제기능, 결과 다시 가져와서 엑셀로 적용 끝.
 
 
 if __name__ == "__main__":
-    extract_text_from_horizontal_layout()
+    result_ocr_arr = extract_text_from_horizontal_layout()
+    print(result_ocr_arr)
     # extract_text_from_updated_layout()
     # make_rectangle_layout()
