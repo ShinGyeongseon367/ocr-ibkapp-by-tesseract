@@ -1,4 +1,5 @@
 from typing import List
+from datetime import datetime
 import pandas as pd
 import cv2
 import matplotlib.pyplot as plt
@@ -6,37 +7,44 @@ from pytesseract import pytesseract
 import re
 
 
-def extract_text_from_horizontal_layout() -> List[str]:
-    # 이미지 읽기
-    image = cv2.imread('./assets/sample007.jpg', cv2.IMREAD_COLOR)
+COLUMN_APPROVAL_DATE = '승인일자'
+COLUMN_MERCHANT_NAME = '가맹점명'
+COLUMN_AMOUNT = '금액'
 
-    # 이미지의 높이와 너비 가져오기
-    height, width, _ = image.shape
 
-    # 각 영역의 높이 계산
-    section_height = height // 10
-
+def extract_text_from_horizontal_layout(path: str, *file_names: str) -> pd.DataFrame:
     result_arr = []
-    # 10개의 영역에 대해 사각형 그리기
-    for i in range(10):
-        start_y = section_height * i
-        end_y = section_height * (i + 1)
 
-        # 해당 영역 추출 (ROI 설정)
-        roi = image[start_y:end_y, 0:width]
+    for file_name in file_names:
+        file_full_name = path + file_name
+        # 이미지 읽기
+        image = cv2.imread(file_full_name, cv2.IMREAD_COLOR)
 
-        # ROI에 대한 OCR 수행
-        ocr_result = pytesseract.image_to_string(roi, lang='eng+kor')
+        # 이미지의 높이와 너비 가져오기
+        height, width, _ = image.shape
 
-        # 결과 출력
-        filtered_rec:List[str] = [x for x in ocr_result.strip().split('\n') if x]
-        if len(filtered_rec) >= 2:
-            name, price = split_name_and_price(filtered_rec[0])
-            date = filtered_rec[1][:filtered_rec[1].find('(')].replace(' ', '')
-            result_arr.append([date, name, price])
+        # 각 영역의 높이 계산
+        section_height = height // 10
 
-    return result_arr
-    # End
+        # 10개의 영역에 대해 사각형 그리기
+        for i in range(10):
+            start_y = section_height * i
+            end_y = section_height * (i + 1)
+
+            # 해당 영역 추출 (ROI 설정)
+            roi = image[start_y:end_y, 0:width]
+
+            # ROI에 대한 OCR 수행
+            ocr_result = pytesseract.image_to_string(roi, lang='eng+kor')
+
+            # 결과 출력
+            filtered_rec:List[str] = [x for x in ocr_result.strip().split('\n') if x]
+            if len(filtered_rec) >= 2:
+                name, price = split_name_and_price(filtered_rec[0])
+                date = filtered_rec[1][:filtered_rec[1].find('(')].replace(' ', '')
+                result_arr.append([date, name, price])
+
+    return create_data_frame(result_arr)
 
 
 def make_rectangle_layout():
@@ -68,7 +76,15 @@ def make_rectangle_layout():
 
 
 def create_data_frame(receipt_ocr_result_arr: List[str]):
-    return pd.DataFrame(receipt_ocr_result_arr, columns=['승인일짜', '가맹점명', '금액'])
+    return pd.DataFrame(receipt_ocr_result_arr,
+                        columns= [COLUMN_APPROVAL_DATE, COLUMN_MERCHANT_NAME, COLUMN_AMOUNT])
+
+
+def convert_to_date(ocr_date:str):
+    current_year = datetime.now().year
+    month = ocr_date[:2]
+    day = ocr_date[3:5]
+    return datetime.strptime(f"{current_year}-{month}-{day}", "%Y-%m-%d")
 
 
 def split_name_and_price(name_and_price_str: str):
@@ -82,12 +98,19 @@ def split_name_and_price(name_and_price_str: str):
         return name, price
     else:
         return name_and_price_str, ''
-# WILL >> front 에서 table을 통해서 제공하고 데이터가 적절한지 확인할 수 있는 화면을 만든다., 프론트추가삭제기능, 결과 다시 가져와서 엑셀로 적용 끝.
+
+
+def main_service(input_month: int):
+    # WILLDO::: parameter validation: not_null, 1~12
+    # WILLDO::: 파일경로와 , 파일이름은 나중에 stream byte로 받을 수 있게 만들어야합니다.
+    result_ocr_arr = extract_text_from_horizontal_layout('./assets/', 'sample008.jpeg', 'sample002.jpeg')
+    df = create_data_frame(result_ocr_arr)
+    df[COLUMN_APPROVAL_DATE] = df[COLUMN_APPROVAL_DATE].apply(convert_to_date)
+    filter_data = df[pd.DatetimeIndex(df[COLUMN_APPROVAL_DATE]).month == input_month]
+    print(filter_data)
 
 
 if __name__ == "__main__":
-    result_ocr_arr = extract_text_from_horizontal_layout()
-    df = create_data_frame(result_ocr_arr)
-    print(df)
+    main_service(9)
     # extract_text_from_updated_layout()
     # make_rectangle_layout()
