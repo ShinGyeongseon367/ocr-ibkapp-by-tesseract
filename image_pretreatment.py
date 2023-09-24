@@ -87,14 +87,26 @@ def convert_to_date(ocr_date:str):
     return datetime.strptime(f"{current_year}-{month}-{day}", "%Y-%m-%d")
 
 
+def convert_won(ocr_won: str):
+    match = re.search(r'(\d{1,3},?\d{1,3})', ocr_won)
+    if match:
+        won_str = match.group(0)
+        if isinstance(won_str, str) and ',' in won_str:
+            return int(won_str.replace(',', ''))
+
+        return match.group(0)
+
+    return ocr_won
+
+
 def split_name_and_price(name_and_price_str: str):
-    # xx,xxx 원 혹은 x,xxx 원 혹은 xxx 원 패턴을 찾습니다.
+    # xx,xxx 원 혹은 x,xxx 원 혹은 xxx 원 패턴을 찾습니다
     match = re.search(r'(\d{1,3},?\d{1,3})', name_and_price_str)
     if match:
-        # 매치된 '금액' 패턴의 시작 인덱스를 가져옵니다.
+        # 매치된 '금액' 패턴의 시작 인덱스를 가져옵니다
         idx = match.start()
-        name = name_and_price_str[:idx].strip() # 시작부터 해당 인덱스 전까지가 이름
-        price = name_and_price_str[idx:].strip() # 해당 인덱스부터 끝까지가 금액
+        name = name_and_price_str[:idx].strip()  # 시작부터 해당 인덱스 전까지가 이름
+        price = name_and_price_str[idx:].strip()  # 해당 인덱스부터 끝까지가 금액
         return name, price
     else:
         return name_and_price_str, ''
@@ -106,5 +118,6 @@ def main_service(input_month: int):
     result_ocr_arr = extract_text_from_horizontal_layout('./assets/', 'sample008.jpeg', 'sample002.jpeg')
     df = create_data_frame(result_ocr_arr)
     df[COLUMN_APPROVAL_DATE] = df[COLUMN_APPROVAL_DATE].apply(convert_to_date)
+    df[COLUMN_AMOUNT] = df[COLUMN_AMOUNT].apply(convert_won)
     return_data = df[pd.DatetimeIndex(df[COLUMN_APPROVAL_DATE]).month == input_month]
     return return_data
