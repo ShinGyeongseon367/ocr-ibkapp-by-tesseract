@@ -160,7 +160,8 @@ cython_debug/
 #.idea/
 
 # Sample Reciept
-assets/*
+assets/*.jpeg
+assets/*.jpg
 
 # ide project setting
 .idea
