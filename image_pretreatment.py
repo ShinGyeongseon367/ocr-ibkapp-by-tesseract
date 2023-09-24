@@ -77,7 +77,7 @@ def make_rectangle_layout():
 
 def create_data_frame(receipt_ocr_result_arr: List[str]):
     return pd.DataFrame(receipt_ocr_result_arr,
-                        columns= [COLUMN_APPROVAL_DATE, COLUMN_MERCHANT_NAME, COLUMN_AMOUNT])
+                        columns=[COLUMN_APPROVAL_DATE, COLUMN_MERCHANT_NAME, COLUMN_AMOUNT])
 
 
 def convert_to_date(ocr_date:str):
@@ -112,9 +112,14 @@ def split_name_and_price(name_and_price_str: str):
         return name_and_price_str, ''
 
 
-def main_service(input_month: int):
-    # WILLDO::: parameter validation: not_null, 1~12
+def main_service(input_month: int, image_bytes) -> pd.DataFrame:
     # WILLDO::: 파일경로와 , 파일이름은 나중에 stream byte로 받을 수 있게 만들어야합니다.
+    if input_month is None:
+        raise ValueError("input_month cannot be null")
+
+    if not 1 <= input_month <= 12:
+        raise ValueError("input_month must be between 1 and 12 inclusive")
+
     result_ocr_arr = extract_text_from_horizontal_layout('./assets/', 'sample008.jpeg', 'sample002.jpeg')
     df = create_data_frame(result_ocr_arr)
     df[COLUMN_APPROVAL_DATE] = df[COLUMN_APPROVAL_DATE].apply(convert_to_date)
