@@ -106,11 +106,5 @@ def main_service(input_month: int):
     result_ocr_arr = extract_text_from_horizontal_layout('./assets/', 'sample008.jpeg', 'sample002.jpeg')
     df = create_data_frame(result_ocr_arr)
     df[COLUMN_APPROVAL_DATE] = df[COLUMN_APPROVAL_DATE].apply(convert_to_date)
-    filter_data = df[pd.DatetimeIndex(df[COLUMN_APPROVAL_DATE]).month == input_month]
-    print(filter_data)
-
-
-if __name__ == "__main__":
-    main_service(9)
-    # extract_text_from_updated_layout()
-    # make_rectangle_layout()
+    return_data = df[pd.DatetimeIndex(df[COLUMN_APPROVAL_DATE]).month == input_month]
+    return return_data
