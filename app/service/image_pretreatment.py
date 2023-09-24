@@ -1,11 +1,12 @@
 from typing import List
 from datetime import datetime
+from pytesseract import pytesseract
+from app.component.create_excel_component import CreateExcel
+
 import pandas as pd
 import cv2
 import matplotlib.pyplot as plt
-from pytesseract import pytesseract
 import re
-
 
 COLUMN_APPROVAL_DATE = '승인일자'
 COLUMN_MERCHANT_NAME = '가맹점명'
@@ -112,7 +113,7 @@ def split_name_and_price(name_and_price_str: str):
         return name_and_price_str, ''
 
 
-def main_service(input_month: int, image_bytes) -> pd.DataFrame:
+def main_service(input_month: int, repoter_name: str, image_bytes):
     # WILLDO::: 파일경로와 , 파일이름은 나중에 stream byte로 받을 수 있게 만들어야합니다.
     if input_month is None:
         raise ValueError("input_month cannot be null")
@@ -120,9 +121,11 @@ def main_service(input_month: int, image_bytes) -> pd.DataFrame:
     if not 1 <= input_month <= 12:
         raise ValueError("input_month must be between 1 and 12 inclusive")
 
-    result_ocr_arr = extract_text_from_horizontal_layout('./assets/', 'sample008.jpeg', 'sample002.jpeg')
+    result_ocr_arr = extract_text_from_horizontal_layout('../../assets/', 'sample008.jpeg', 'sample002.jpeg')
     df = create_data_frame(result_ocr_arr)
     df[COLUMN_APPROVAL_DATE] = df[COLUMN_APPROVAL_DATE].apply(convert_to_date)
     df[COLUMN_AMOUNT] = df[COLUMN_AMOUNT].apply(convert_won)
-    return_data = df[pd.DatetimeIndex(df[COLUMN_APPROVAL_DATE]).month == input_month]
-    return return_data
+    insert_data = df[pd.DatetimeIndex(df[COLUMN_APPROVAL_DATE]).month == input_month]
+
+    c_excel = CreateExcel()
+    c_excel.service(insert_df=insert_data, month=input_month, reporter_name=repoter_name)

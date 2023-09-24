@@ -1,24 +1,17 @@
-# This is a sample Python script.
+from fastapi import FastAPI
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-import datetime
-import calendar
+from app.controller import receipt_controller
 
-import image_pretreatment
-import create_excel
+app = FastAPI()
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+@app.get("/")
+async def root():
+    return {"message": "Hello World"}
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    df = image_pretreatment.main_service(9)
-    create_excel.CreateExcel().service(insert_df=df)
-
-    print_hi('PyCharm')
+@app.get("/hello/{name}")
+async def say_hello(name: str):
+    return {"message": f"Hello {name}"}
 
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+app.include_router(receipt_controller.router)
