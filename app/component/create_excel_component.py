@@ -1,5 +1,6 @@
 import calendar
 import datetime
+import os
 
 import openpyxl
 import pandas
@@ -43,7 +44,13 @@ class CreateExcel:
         sheet['E3'] = period  # period cell
 
     def export_result_excel(self, export_excel_name: str) -> None:
-        self.workbook.save('./return_assets/' + export_excel_name + '.xlsx')
+        directory = './return_assets/'
+
+        # 폴더가 존재하지 않을 경우 폴더 생성
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        self.workbook.save(directory + export_excel_name + '.xlsx')
 
     def service(self, insert_df: pandas.DataFrame, month: int, reporter_name: str):
         self.get_excel_schema()
