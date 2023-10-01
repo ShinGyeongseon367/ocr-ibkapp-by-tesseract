@@ -14,7 +14,7 @@ Afterwards, we plan to test again using NAVER CLOVA.
 **🚨 Image preprocessing must be performed using NAVER CLOVA OCR.**
 
 ---
-How to use
+# How to use
 1. Crop the image
 Please cut it based on the top and bottom and express only the list.
 ![diagram-export-2023  10  1  오후 11_21_10](https://github.com/ShinGyeongseon367/ocr-ibkapp-by-tesseract/assets/68821752/69b24897-a893-42a4-84f8-94cd387a80d5)
